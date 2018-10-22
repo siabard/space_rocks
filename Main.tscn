@@ -1,9 +1,14 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://Main.gd" type="Script" id=1]
 [ext_resource path="res://rock/Rock.tscn" type="PackedScene" id=2]
-[ext_resource path="res://assets/space_background.png" type="Texture" id=3]
-[ext_resource path="res://player/Player.tscn" type="PackedScene" id=4]
+[ext_resource path="res://enemy/Enemy.tscn" type="PackedScene" id=3]
+[ext_resource path="res://assets/space_background.png" type="Texture" id=4]
+[ext_resource path="res://player/Player.tscn" type="PackedScene" id=5]
+[ext_resource path="res://ui/HUD.tscn" type="PackedScene" id=6]
+[ext_resource path="res://assets/sounds/synthetic_thunder_short.wav" type="AudioStream" id=7]
+[ext_resource path="res://assets/sounds/zap2a.ogg" type="AudioStream" id=8]
+[ext_resource path="res://assets/sounds/Funky-Gameplay_Looping.ogg" type="AudioStream" id=9]
 
 [sub_resource type="Curve2D" id=1]
 
@@ -13,18 +18,21 @@ _data = {
 }
 _sections_unfolded = [ "Resource" ]
 
-[node name="Main" type="Node" index="0"]
+[node name="Main" type="Node"]
 
+pause_mode = 2
 script = ExtResource( 1 )
+_sections_unfolded = [ "Pause" ]
 Rock = ExtResource( 2 )
+Enemy = ExtResource( 3 )
 
 [node name="Background" type="Sprite" parent="." index="0"]
 
-texture = ExtResource( 3 )
+texture = ExtResource( 4 )
 centered = false
 _sections_unfolded = [ "Offset", "Region", "Transform" ]
 
-[node name="Player" parent="." index="1" instance=ExtResource( 4 )]
+[node name="Player" parent="." index="1" instance=ExtResource( 5 )]
 
 [node name="RockPath" type="Path2D" parent="." index="2"]
 
@@ -45,6 +53,58 @@ lookahead = 4.0
 
 [node name="Rocks" type="Node" parent="." index="3"]
 
+[node name="HUD" parent="." index="4" instance=ExtResource( 6 )]
+
+[node name="EnemyTimer" type="Timer" parent="." index="5"]
+
+process_mode = 1
+wait_time = 0.01
+one_shot = true
+autostart = false
+
+[node name="ExplodeSound" type="AudioStreamPlayer2D" parent="." index="6"]
+
+stream = ExtResource( 7 )
+volume_db = 0.0
+pitch_scale = 1.0
+autoplay = false
+max_distance = 2000.0
+attenuation = 1.0
+bus = "Master"
+area_mask = 1
+
+[node name="LevelupSound" type="AudioStreamPlayer2D" parent="." index="7"]
+
+stream = ExtResource( 8 )
+volume_db = 0.0
+pitch_scale = 1.0
+autoplay = false
+max_distance = 2000.0
+attenuation = 1.0
+bus = "Master"
+area_mask = 1
+
+[node name="Music" type="AudioStreamPlayer2D" parent="." index="8"]
+
+stream = ExtResource( 9 )
+volume_db = 0.0
+pitch_scale = 1.0
+autoplay = false
+max_distance = 2000.0
+attenuation = 1.0
+bus = "Master"
+area_mask = 1
+
+[connection signal="dead" from="Player" to="." method="game_over"]
+
+[connection signal="live_changed" from="Player" to="HUD" method="update_lives"]
+
+[connection signal="shield_changed" from="Player" to="HUD" method="update_shield"]
+
 [connection signal="shoot" from="Player" to="." method="_on_Player_shoot"]
+
+[connection signal="start_game" from="HUD" to="." method="new_game"]
+
+[connection signal="timeout" from="EnemyTimer" to="." method="_on_EnemyTimer_timeout"]
 
 

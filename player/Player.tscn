@@ -1,16 +1,87 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=13 format=2]
 
 [ext_resource path="res://player/Player.gd" type="Script" id=1]
 [ext_resource path="res://bullet/Bullet.tscn" type="PackedScene" id=2]
 [ext_resource path="res://assets/player_ship.png" type="Texture" id=3]
+[ext_resource path="res://explosion/Explosion.tscn" type="PackedScene" id=4]
+[ext_resource path="res://assets/sounds/synthetic_laser.ogg" type="AudioStream" id=5]
+[ext_resource path="res://assets/sounds/flight_sound.ogg" type="AudioStream" id=6]
 
 [sub_resource type="CircleShape2D" id=1]
 
 custom_solver_bias = 0.0
 radius = 29.8051
 
-[node name="Player" type="RigidBody2D"]
+[sub_resource type="Gradient" id=2]
 
+offsets = PoolRealArray( 0, 1 )
+colors = PoolColorArray( 1, 0.703125, 0, 1, 1, 0, 0, 1 )
+
+[sub_resource type="GradientTexture" id=3]
+
+flags = 4
+gradient = SubResource( 2 )
+width = 2048
+
+[sub_resource type="Curve" id=4]
+
+min_value = 0.0
+max_value = 1.0
+bake_resolution = 100
+_data = [ Vector2( 0, 1 ), 0.0, 0.0, 0, 0, Vector2( 1, 0.134766 ), 0.0, 0.0, 0, 0 ]
+_sections_unfolded = [ "Resource" ]
+
+[sub_resource type="CurveTexture" id=5]
+
+flags = 4
+width = 2047
+curve = SubResource( 4 )
+_sections_unfolded = [ "Resource" ]
+
+[sub_resource type="ParticlesMaterial" id=6]
+
+render_priority = 0
+trail_divisor = 1
+emission_shape = 2
+emission_box_extents = Vector3( 1, 5, 1 )
+flag_align_y = false
+flag_rotate_y = false
+flag_disable_z = true
+spread = 0.0
+flatness = 0.0
+gravity = Vector3( 0, 0, 0 )
+initial_velocity = 400.0
+initial_velocity_random = 0.0
+angular_velocity = 0.0
+angular_velocity_random = 0.0
+orbit_velocity = 0.0
+orbit_velocity_random = 0.0
+linear_accel = 0.0
+linear_accel_random = 0.0
+radial_accel = 0.0
+radial_accel_random = 0.0
+tangential_accel = 0.0
+tangential_accel_random = 0.0
+damping = 0.0
+damping_random = 0.0
+angle = 0.0
+angle_random = 0.0
+scale = 8.0
+scale_random = 0.0
+scale_curve = SubResource( 5 )
+color_ramp = SubResource( 3 )
+hue_variation = 0.0
+hue_variation_random = 0.0
+anim_speed = 0.0
+anim_speed_random = 0.0
+anim_offset = 0.0
+anim_offset_random = 0.0
+anim_loop = false
+_sections_unfolded = [ "Color", "Emission Shape", "Gravity", "Initial Velocity", "Scale", "Spread" ]
+
+[node name="Player" type="RigidBody2D" index="0"]
+
+pause_mode = 1
 input_pickable = false
 collision_layer = 1
 collision_mask = 1
@@ -21,8 +92,8 @@ bounce = 0.0
 gravity_scale = 1.0
 custom_integrator = false
 continuous_cd = 0
-contacts_reported = 0
-contact_monitor = false
+contacts_reported = 1
+contact_monitor = true
 sleeping = false
 can_sleep = true
 linear_velocity = Vector2( 0, 0 )
@@ -30,7 +101,9 @@ linear_damp = 1.0
 angular_velocity = 0.0
 angular_damp = 5.0
 script = ExtResource( 1 )
-_sections_unfolded = [ "Angular", "Linear" ]
+_sections_unfolded = [ "Angular", "Linear", "Pause" ]
+max_shield = 100
+shield_regen = 5.0
 Bullet = ExtResource( 2 )
 fire_rate = 0.25
 engine_power = 500
@@ -59,6 +132,69 @@ wait_time = 1.0
 one_shot = true
 autostart = true
 
+[node name="Explosion" parent="." index="4" instance=ExtResource( 4 )]
+
+[node name="InvulnerabilityTimer" type="Timer" parent="." index="5"]
+
+process_mode = 1
+wait_time = 1.0
+one_shot = true
+autostart = false
+
+[node name="LaserSound" type="AudioStreamPlayer2D" parent="." index="6"]
+
+stream = ExtResource( 5 )
+volume_db = -10.0
+pitch_scale = 1.0
+autoplay = false
+max_distance = 2000.0
+attenuation = 1.0
+bus = "Master"
+area_mask = 1
+
+[node name="EngineSound" type="AudioStreamPlayer2D" parent="." index="7"]
+
+stream = ExtResource( 6 )
+volume_db = -10.0
+pitch_scale = 1.0
+autoplay = false
+max_distance = 2000.0
+attenuation = 1.0
+bus = "Master"
+area_mask = 1
+
+[node name="Exhaust" type="Particles2D" parent="." index="8"]
+
+show_behind_parent = true
+position = Vector2( -28, 0 )
+rotation = 3.14159
+emitting = true
+amount = 25
+lifetime = 0.1
+one_shot = false
+preprocess = 0.0
+speed_scale = 1.0
+explosiveness = 0.0
+randomness = 0.0
+fixed_fps = 0
+fract_delta = true
+visibility_rect = Rect2( -100, -100, 200, 200 )
+local_coords = true
+draw_order = 0
+process_material = SubResource( 6 )
+texture = null
+normal_map = null
+h_frames = 1
+v_frames = 1
+_sections_unfolded = [ "Drawing", "Process Material", "Time", "Transform", "Visibility", "Z Index" ]
+
+[connection signal="body_entered" from="." to="." method="_on_Player_body_entered"]
+
 [connection signal="timeout" from="GunTimer" to="." method="_on_GunTimer_timeout"]
 
+[connection signal="animation_finished" from="Explosion/AnimationPlayer" to="." method="_on_AnimationPlayer_animation_finished"]
 
+[connection signal="timeout" from="InvulnerabilityTimer" to="." method="_on_InvulnerabilityTimer_timeout"]
+
+
+[editable path="Explosion"]

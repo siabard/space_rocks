@@ -8,6 +8,7 @@
 "rocks",
 ]]
 
+pause_mode = 1
 input_pickable = false
 collision_layer = 1
 collision_mask = 1
@@ -27,7 +28,7 @@ linear_damp = 0.0
 angular_velocity = 0.0
 angular_damp = 0.0
 script = ExtResource( 1 )
-_sections_unfolded = [ "Angular", "Collision", "Linear" ]
+_sections_unfolded = [ "Angular", "Collision", "Linear", "Pause" ]
 __meta__ = {
 "_edit_group_": true
 }
